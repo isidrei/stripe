@@ -1,40 +1,27 @@
+
+
 <?php
 
-require "vendor/autoload.php";
+require 'vendor/autoload.php';
+// This is your test secret API key.
+\Stripe\Stripe::setApiKey('sk_test_51LgIK8GBGzw7rM6wB6iSDHIckquDuEDLt9vs8rUFfIqYJt8Bt1jETGzBm6BeaxY4oVzcynoe5C2ufz1hkuZw9QM9006PEfCiGf');
 
-$stripe = new \Stripe\StripeClient(
-  'sk_test_51LgIK8GBGzw7rM6wB6iSDHIckquDuEDLt9vs8rUFfIqYJt8Bt1jETGzBm6BeaxY4oVzcynoe5C2ufz1hkuZw9QM9006PEfCiGf'
-);
-$product = $stripe->products->retrieve(
-	'prod_MP6zYV7ofzrlQc',
-	[]
-);
-$price = $stripe->prices->retrieve('price_1LgIlsGBGzw7rM6wKQ4olMo9',[]);
-echo '<pre>';
-var_dump($product);
-var_dump($price);
-echo '</pre>';
-?><!DOCTYPE html>
-<html>
-  <head>
-    <title>Buy</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
-    <script src="https://js.stripe.com/v3/"></script>
-  </head>
-  <body>
-    <section>
-      <div class="product">
-        <img src="<?php echo array_pop($product->images); ?>" alt="<?php echo $product->name; ?>" />
-        <div class="description">
-          <h3><?php echo $product->name; ?></h3>
-          <p><?php echo $product->description; ?></p>
-          <h5><?php echo strtoupper($price->currency); ?> <?php echo $price->unit_amount_decimal; ?></h5>
-        </div>
-      </div>
-      <form action="/create-checkout-session.php" method="POST">
-        <button type="submit" id="checkout-button">Checkout</button>
-      </form>
-    </section>
-  </body>
-</html>
+header('Content-Type: application/json');
+
+$YOUR_DOMAIN = 'http://localhost:4242/public';
+
+$checkout_session = \Stripe\Checkout\Session::create([
+  'line_items' => [[
+    # Provide the exact Price ID (e.g. pr_1234) of the product you want to sell
+    'price' => 'price_1LgIlsGBGzw7rM6wKQ4olMo9',
+    'quantity' => 1,
+  ]],
+  'mode' => 'payment',
+  'success_url' => $YOUR_DOMAIN . '/success.html',
+  'cancel_url' => $YOUR_DOMAIN . '/cancel.html',
+]);
+
+header("HTTP/1.1 303 See Other");
+header("Location: " . $checkout_session->url);
+
+?>
